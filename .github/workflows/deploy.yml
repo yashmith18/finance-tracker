@@ -10,13 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Use v3 of checkout to support Node 20
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
+      # Use v3 of setup-node to support Node 20
       - name: Set Up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '18'  # Match Lambda runtime version
 
       - name: Install Dependencies
         run: npm install
