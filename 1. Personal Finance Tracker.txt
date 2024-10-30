@@ -1,0 +1,18 @@
+1. Personal Finance Tracker
+
+Problem: Managing personal finances can be challenging, especially for users who need a simple solution to track income, expenses, and savings goals without the complexity or cost of more advanced financial tools.
+
+Solution: A web app that allows users to log expenses, income, and savings, categorize transactions, and set financial goals. This app would include visualizations to help users see spending trends and progress toward goals.
+
+Stack:
+
+Frontend: React.js, hosted on AWS S3 for a static website.
+Backend: AWS Lambda and API Gateway to handle transaction logging and goal management.
+Database: DynamoDB to store transactions and categories.
+CI/CD Pipeline: GitHub Actions for automated deployment.
+DevOps Cycles:
+
+Cycle 1: Set up basic infrastructure with CloudFormation and initialize frontend/backend structure.
+Cycle 2: Implement CRUD operations for transactions and test the CI/CD pipeline.
+Cycle 3: Build and integrate the frontend with backend APIs and basic financial charts.
+Cycle 4: Add final touches, logging, and monitoring with CloudWatch.

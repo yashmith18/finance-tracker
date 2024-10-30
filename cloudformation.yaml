@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  FinanceTrackerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: FinanceTracker
+      AttributeDefinitions:
+        - AttributeName: transactionId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: transactionId
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: DynamoDBAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                Resource: !GetAtt FinanceTrackerTable.Arn
+
+  FinanceTrackerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: FinanceTrackerFunction
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: nodejs18.x
+      Code:
+        ZipFile: |
+          exports.handler = async (event) => {
+              return { statusCode: 200, body: JSON.stringify("Hello from Lambda") };
+          };
+
+  FinanceTrackerApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: FinanceTrackerApi
+      Description: "API Gateway for Personal Finance Tracker"
+
+  FinanceTrackerResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt FinanceTrackerApi.RootResourceId
+      PathPart: transactions
+      RestApiId: !Ref FinanceTrackerApi
+
+  FinanceTrackerMethodPost:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref FinanceTrackerApi
+      ResourceId: !Ref FinanceTrackerResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FinanceTrackerLambda.Arn}/invocations"
+
+  FinanceTrackerDeployment:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId: !Ref FinanceTrackerApi
+      StageName: prod
+    DependsOn: FinanceTrackerMethodPost
+
+Outputs:
+  ApiUrl:
+    Description: "The API endpoint for the Finance Tracker"
+    Value: !Sub "https://${FinanceTrackerApi}.execute-api.${AWS::Region}.amazonaws.com/prod/transactions"
