@@ -1,4 +1,4 @@
-name: Deploy Finance Tracker
+name: Deploy to AWS Lambda
 
 on:
   push:
@@ -10,42 +10,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
         with:
-          node-version: '16'
+          node-version: '14'
 
-      - name: Install Dependencies
-        run: npm install --no-cache
+      - name: Install AWS CLI v2
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
 
-      - name: Build Frontend
-        run: npm run build
+      - name: Verify AWS CLI Version
+        run: aws --version
 
-      - name: Prepare Lambda Function
+      - name: Debug AWS Configuration
+        run: aws configure list
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: us-east-1
+
+      - name: Zip Lambda Function Code
         run: |
           mkdir -p lambda_build
-          cp index.js lambda_build/
-          cd lambda_build
-          npm install --production
-          zip -r function.zip .
-          cd ..
+          zip -r lambda_build/function.zip . -x ".git/*"
 
-      - name: Deploy to Lambda
+      - name: Update Lambda Function Code
+        run: |
+          aws lambda update-function-code --function-name FinanceTrackerFunction --zip-file fileb://lambda_build/function.zip --region us-east-1 --output json
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
-        run: |
-          aws lambda update-function-code --function-name FinanceTrackerFunction --zip-file fileb://lambda_build/function.zip --region $AWS_REGION --output json
-
-      - name: Deploy to S3
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-        run: |
-          aws s3 sync build/ s3://cf-templates-svwtzd8k874w-us-east-1 --delete --region $AWS_REGION --output json
-#This code is made by Yashmith Jethi
