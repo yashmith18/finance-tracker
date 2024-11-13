@@ -74,12 +74,53 @@ Resources:
         IntegrationHttpMethod: POST
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FinanceTrackerLambda.Arn}/invocations"
 
+  FinanceTrackerMethodGet:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref FinanceTrackerApi
+      ResourceId: !Ref FinanceTrackerResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FinanceTrackerLambda.Arn}/invocations"
+
+  FinanceTrackerMethodPut:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref FinanceTrackerApi
+      ResourceId: !Ref FinanceTrackerResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FinanceTrackerLambda.Arn}/invocations"
+
+  FinanceTrackerMethodDelete:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref FinanceTrackerApi
+      ResourceId: !Ref FinanceTrackerResource
+      HttpMethod: DELETE
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FinanceTrackerLambda.Arn}/invocations"
+
   FinanceTrackerDeployment:
     Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref FinanceTrackerApi
       StageName: prod
-    DependsOn: FinanceTrackerMethodPost
+    DependsOn:
+      - FinanceTrackerMethodPost
+      - FinanceTrackerMethodGet
+      - FinanceTrackerMethodPut
+      - FinanceTrackerMethodDelete
+
 
 Outputs:
   ApiUrl:
