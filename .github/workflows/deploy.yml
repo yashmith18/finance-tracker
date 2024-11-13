@@ -19,17 +19,19 @@ jobs:
           node-version: '16'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm install --no-cache
 
       - name: Build Frontend
         run: npm run build
 
-      - name: Zip Lambda Function
+      - name: Prepare Lambda Function
         run: |
           mkdir -p lambda_build
           cp index.js lambda_build/
-          cp -r node_modules lambda_build/
-          cd lambda_build && zip -r function.zip . && cd ..
+          cd lambda_build
+          npm install --production
+          zip -r function.zip .
+          cd ..
 
       - name: Configure AWS CLI
         env:
@@ -49,4 +51,4 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws s3 sync build/ s3://cf-templates-svwtzd8k874w-us-east-1 --delete
+          aws s3 sync build/ s3://your-s3-bucket-name --delete
