@@ -33,23 +33,16 @@ jobs:
           zip -r function.zip .
           cd ..
 
-      - name: Configure AWS CLI
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-        run: |
-          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-          aws configure set region $AWS_REGION
-
       - name: Deploy to Lambda
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
         run: |
-          aws lambda update-function-code --function-name FinanceTrackerFunction --zip-file fileb://lambda_build/function.zip
+          aws lambda update-function-code --function-name FinanceTrackerFunction --zip-file fileb://lambda_build/function.zip \
+            --region $AWS_REGION \
+            --output json \
+            --profile default
 
       - name: Deploy to S3
         env:
@@ -57,4 +50,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: us-east-1
         run: |
-          aws s3 sync build/ s3://cf-templates-svwtzd8k874w-us-east-1 --delete
+          aws s3 sync build/ s3://cf-templates-svwtzd8k874w-us-east-1 --delete \
+            --region $AWS_REGION \
+            --output json \
+            --profile default
